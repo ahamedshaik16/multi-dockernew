@@ -1,0 +1,23 @@
+sudo: required
+services:
+    - docker
+    
+before_install:
+    - docker build -t backupshaik/react-test -f ./client/Dockerfile.dev ./client
+    
+script:
+    - docker run -e CI=true USERNAME/react-test npm test
+    
+after_success:
+    - docker build -t backupshaik/multi-client ./client
+    - docker build -t backupshaik/multi-nginx ./nginx
+    - docker build -t backupshaik/multi-server ./server
+    - docker build -t backupshaik/multi-worker ./worker
+    # Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    #push images to docker hub
+    - docker push backupshaik/multi-client
+    - docker push backupshaik/multi-nginx
+    - docker push backupshaik/multi-server
+    - docker push backupshaik/multi-worker
+    
